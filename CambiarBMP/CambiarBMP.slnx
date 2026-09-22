@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="CambiarBMP/CambiarBMP.vcxproj" Id="c51db560-d191-4e9a-bb99-28370bf639dc" />
+</Solution>
