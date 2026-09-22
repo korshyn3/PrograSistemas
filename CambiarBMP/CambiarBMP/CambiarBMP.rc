@@ -1,0 +1,113 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+/////////////////////////////////////////////////////////////////////////////
+// Russian (Russia) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CAMBIARBMP_DIALOG DIALOGEX 0, 0, 420, 260
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "CambiarBMP"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Abrir BMP...",IDC_BTN_ABRIR,7,7,70,14
+    LTEXT           "Ningun archivo cargado",IDC_STATIC_ARCHIVO,84,10,250,10
+    PUSHBUTTON      "Guardar cambios",IDC_BTN_GUARDAR,340,7,73,14,WS_DISABLED
+    LTEXT           "Imagen (haz clic en un pixel):",IDC_STATIC_CANVAS_LABEL,7,27,200,10
+    GROUPBOX        "Pixel seleccionado",IDC_GROUP_PIXEL,265,27,148,225
+    LTEXT           "Ningun pixel seleccionado",IDC_STATIC_COORD,272,42,134,10
+    LTEXT           "Color actual: -",IDC_STATIC_COLOR_ACTUAL,272,58,134,18
+    LTEXT           "R:",IDC_STATIC,272,84,10,10
+    EDITTEXT        IDC_EDIT_R,286,82,40,14,ES_NUMBER | WS_DISABLED
+    LTEXT           "G:",IDC_STATIC,272,102,10,10
+    EDITTEXT        IDC_EDIT_G,286,100,40,14,ES_NUMBER | WS_DISABLED
+    LTEXT           "B:",IDC_STATIC,272,120,10,10
+    EDITTEXT        IDC_EDIT_B,286,118,40,14,ES_NUMBER | WS_DISABLED
+    PUSHBUTTON      "Elegir color...",IDC_BTN_ELEGIR_COLOR,272,140,130,14,WS_DISABLED
+    PUSHBUTTON      "Aplicar cambio",IDC_BTN_APLICAR,272,160,130,14,WS_DISABLED
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_CAMBIARBMP_DIALOG, DIALOG
+    BEGIN
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_CAMBIARBMP_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+#endif    // Russian (Russia) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Ukrainian (Ukraine) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_UKR)
+LANGUAGE LANG_UKRAINIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Ukrainian (Ukraine) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
