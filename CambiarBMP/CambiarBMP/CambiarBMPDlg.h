@@ -23,6 +23,8 @@ protected:
 
     afx_msg void OnPaint();
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+    afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+    afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
     afx_msg void OnBnClickedBtnAbrir();
     afx_msg void OnBnClickedBtnGuardar();
     afx_msg void OnBnClickedBtnElegirColor();
@@ -32,7 +34,8 @@ protected:
 private:
     void CargarImagen(const CString& ruta);
     void LiberarImagenActual();
-    void SeleccionarPixel(int32_t x, int32_t y);
+    void ActualizarSeleccion(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
+    bool PixelDesdePunto(CPoint point, int32_t& x, int32_t& y) const;
     void ActualizarPanelPixel();
     void HabilitarPanelPixel(BOOL habilitar);
     void RecalcularZoom();
@@ -45,10 +48,15 @@ private:
     CabeceraInfoBMP* m_infoHeader;
     CString m_rutaArchivo;
 
-    // Seleccion actual.
-    int32_t m_pixelX;
-    int32_t m_pixelY;
+    // Seleccion actual: rectangulo de pixeles [m_selX1..m_selX2] x [m_selY1..m_selY2]
+    // (ambos extremos incluidos, m_selX1<=m_selX2, m_selY1<=m_selY2). Un solo pixel
+    // clicado es un rectangulo de 1x1.
+    int32_t m_selX1, m_selY1, m_selX2, m_selY2;
     bool m_haySeleccion;
+
+    // Arrastre del mouse en curso (para seleccionar un rango).
+    bool m_arrastrando;
+    int32_t m_arrastreOrigenX, m_arrastreOrigenY;
 
     // Presentacion del canvas: m_rcCanvasArea es el espacio disponible (fijo, calculado
     // una vez a partir de los controles vecinos); m_rcCanvas es el rectangulo real que

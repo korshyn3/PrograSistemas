@@ -10,6 +10,8 @@ namespace {
 BEGIN_MESSAGE_MAP(CCambiarBMPDlg, CDialogEx)
     ON_WM_PAINT()
     ON_WM_LBUTTONDOWN()
+    ON_WM_MOUSEMOVE()
+    ON_WM_LBUTTONUP()
     ON_BN_CLICKED(IDC_BTN_ABRIR, &CCambiarBMPDlg::OnBnClickedBtnAbrir)
     ON_BN_CLICKED(IDC_BTN_GUARDAR, &CCambiarBMPDlg::OnBnClickedBtnGuardar)
     ON_BN_CLICKED(IDC_BTN_ELEGIR_COLOR, &CCambiarBMPDlg::OnBnClickedBtnElegirColor)
@@ -19,7 +21,8 @@ END_MESSAGE_MAP()
 CCambiarBMPDlg::CCambiarBMPDlg(CWnd* pParent)
     : CDialogEx(IDD_CAMBIARBMP_DIALOG, pParent),
       m_buffer(nullptr), m_tamanio(0), m_fileHeader(nullptr), m_infoHeader(nullptr),
-      m_pixelX(-1), m_pixelY(-1), m_haySeleccion(false),
+      m_selX1(-1), m_selY1(-1), m_selX2(-1), m_selY2(-1), m_haySeleccion(false),
+      m_arrastrando(false), m_arrastreOrigenX(0), m_arrastreOrigenY(0),
       m_zoom(ZOOM_MINIMO), m_rcCanvas(0, 0, 0, 0) {
 }
 
@@ -102,7 +105,9 @@ void CCambiarBMPDlg::OnPaint() {
     }
 
     if (m_haySeleccion) {
-        CRect rcSel = RectCanvasDePixel(m_pixelX, m_pixelY);
+        CRect rcIni = RectCanvasDePixel(m_selX1, m_selY1);
+        CRect rcFin = RectCanvasDePixel(m_selX2, m_selY2);
+        CRect rcSel(rcIni.left, rcIni.top, rcFin.right, rcFin.bottom);
         CBrush brNegro(RGB(0, 0, 0));
         dc.FrameRect(rcSel, &brNegro);
         rcSel.InflateRect(1, 1);
@@ -111,22 +116,56 @@ void CCambiarBMPDlg::OnPaint() {
     }
 }
 
+bool CCambiarBMPDlg::PixelDesdePunto(CPoint point, int32_t& x, int32_t& y) const {
+    if (m_buffer == nullptr) return false;
+
+    int32_t ancho = m_infoHeader->biWidth;
+    int32_t alto = m_infoHeader->biHeight < 0 ? -m_infoHeader->biHeight : m_infoHeader->biHeight;
+
+    x = (point.x - m_rcCanvas.left) / m_zoom;
+    y = (point.y - m_rcCanvas.top) / m_zoom;
+    if (x < 0) x = 0;
+    if (x >= ancho) x = ancho - 1;
+    if (y < 0) y = 0;
+    if (y >= alto) y = alto - 1;
+    return true;
+}
+
 void CCambiarBMPDlg::OnLButtonDown(UINT nFlags, CPoint point) {
     if (m_buffer != nullptr && m_rcCanvas.PtInRect(point)) {
-        int32_t x = (point.x - m_rcCanvas.left) / m_zoom;
-        int32_t y = (point.y - m_rcCanvas.top) / m_zoom;
-        int32_t ancho = m_infoHeader->biWidth;
-        int32_t alto = m_infoHeader->biHeight < 0 ? -m_infoHeader->biHeight : m_infoHeader->biHeight;
-        if (x >= 0 && x < ancho && y >= 0 && y < alto) {
-            SeleccionarPixel(x, y);
-        }
+        int32_t x, y;
+        PixelDesdePunto(point, x, y);
+        m_arrastrando = true;
+        m_arrastreOrigenX = x;
+        m_arrastreOrigenY = y;
+        SetCapture();
+        ActualizarSeleccion(x, y, x, y);
     }
     CDialogEx::OnLButtonDown(nFlags, point);
 }
 
-void CCambiarBMPDlg::SeleccionarPixel(int32_t x, int32_t y) {
-    m_pixelX = x;
-    m_pixelY = y;
+void CCambiarBMPDlg::OnMouseMove(UINT nFlags, CPoint point) {
+    if (m_arrastrando) {
+        int32_t x, y;
+        PixelDesdePunto(point, x, y);
+        ActualizarSeleccion(m_arrastreOrigenX, m_arrastreOrigenY, x, y);
+    }
+    CDialogEx::OnMouseMove(nFlags, point);
+}
+
+void CCambiarBMPDlg::OnLButtonUp(UINT nFlags, CPoint point) {
+    if (m_arrastrando) {
+        m_arrastrando = false;
+        ReleaseCapture();
+    }
+    CDialogEx::OnLButtonUp(nFlags, point);
+}
+
+void CCambiarBMPDlg::ActualizarSeleccion(int32_t x1, int32_t y1, int32_t x2, int32_t y2) {
+    m_selX1 = x1 < x2 ? x1 : x2;
+    m_selX2 = x1 < x2 ? x2 : x1;
+    m_selY1 = y1 < y2 ? y1 : y2;
+    m_selY2 = y1 < y2 ? y2 : y1;
     m_haySeleccion = true;
     HabilitarPanelPixel(TRUE);
     ActualizarPanelPixel();
@@ -136,20 +175,31 @@ void CCambiarBMPDlg::SeleccionarPixel(int32_t x, int32_t y) {
 void CCambiarBMPDlg::ActualizarPanelPixel() {
     if (!m_haySeleccion || m_buffer == nullptr) return;
 
-    uint8_t* p = ObtenerPixelBMP(m_buffer, m_infoHeader, m_fileHeader->bfOffBits, m_pixelX, m_pixelY);
-    uint8_t b = p[0], g = p[1], r = p[2];
+    int32_t numPixeles = (m_selX2 - m_selX1 + 1) * (m_selY2 - m_selY1 + 1);
 
     CString texto;
-    texto.Format(_T("Pixel: (%d, %d)"), m_pixelX, m_pixelY);
+    if (numPixeles == 1) {
+        texto.Format(_T("Pixel: (%d, %d)"), m_selX1, m_selY1);
+    } else {
+        texto.Format(_T("Seleccion: (%d,%d) - (%d,%d)\r\n%d pixeles"), m_selX1, m_selY1, m_selX2, m_selY2, numPixeles);
+    }
     SetDlgItemText(IDC_STATIC_COORD, texto);
 
     CString colorTexto;
-    colorTexto.Format(_T("Color actual:\r\nR=%d  G=%d  B=%d"), r, g, b);
+    if (numPixeles == 1) {
+        uint8_t* p = ObtenerPixelBMP(m_buffer, m_infoHeader, m_fileHeader->bfOffBits, m_selX1, m_selY1);
+        uint8_t b = p[0], g = p[1], r = p[2];
+        colorTexto.Format(_T("Color actual:\r\nR=%d  G=%d  B=%d"), r, g, b);
+        SetDlgItemInt(IDC_EDIT_R, r, FALSE);
+        SetDlgItemInt(IDC_EDIT_G, g, FALSE);
+        SetDlgItemInt(IDC_EDIT_B, b, FALSE);
+    } else {
+        colorTexto = _T("Color actual: (varios pixeles)");
+        SetDlgItemText(IDC_EDIT_R, _T(""));
+        SetDlgItemText(IDC_EDIT_G, _T(""));
+        SetDlgItemText(IDC_EDIT_B, _T(""));
+    }
     SetDlgItemText(IDC_STATIC_COLOR_ACTUAL, colorTexto);
-
-    SetDlgItemInt(IDC_EDIT_R, r, FALSE);
-    SetDlgItemInt(IDC_EDIT_G, g, FALSE);
-    SetDlgItemInt(IDC_EDIT_B, b, FALSE);
 }
 
 void CCambiarBMPDlg::HabilitarPanelPixel(BOOL habilitar) {
@@ -202,6 +252,7 @@ void CCambiarBMPDlg::CargarImagen(const CString& ruta) {
     m_rutaArchivo = ruta;
 
     m_haySeleccion = false;
+    m_arrastrando = false;
     HabilitarPanelPixel(FALSE);
     SetDlgItemText(IDC_STATIC_COORD, _T("Ningun pixel seleccionado"));
     SetDlgItemText(IDC_STATIC_COLOR_ACTUAL, _T("Color actual: -"));
@@ -262,8 +313,12 @@ void CCambiarBMPDlg::OnBnClickedBtnAplicar() {
         return;
     }
 
-    CambiarPixelBMP(m_buffer, m_infoHeader, m_fileHeader->bfOffBits, m_pixelX, m_pixelY,
-                     (uint8_t)r, (uint8_t)g, (uint8_t)b);
+    for (int32_t y = m_selY1; y <= m_selY2; y++) {
+        for (int32_t x = m_selX1; x <= m_selX2; x++) {
+            CambiarPixelBMP(m_buffer, m_infoHeader, m_fileHeader->bfOffBits, x, y,
+                             (uint8_t)r, (uint8_t)g, (uint8_t)b);
+        }
+    }
     ActualizarPanelPixel();
     Invalidate();
 }
