@@ -1,2 +1,6 @@
-﻿  CambiarBMP.cpp
-  CambiarBMP.vcxproj -> E:\PrograSistemas\CambiarBMP\x64\Debug\CambiarBMP.exe
+﻿  
+CambiarBMP.rc(8): error RC2144: PRIMARY LANGUAGE ID not a number
+  
+  
+CambiarBMP.rc(16): error RC2135: file not found: 101
+  
